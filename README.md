@@ -88,6 +88,29 @@ import (
 	"m1/tasks"
 )
 
+type Address struct {
+	gorm.Model
+	ID         uint   `gorm:"primaryKey" json:"id"`
+	CustomerID uint   `json:"customer_id"`
+	Country    string `json:"country"`
+	City       string `json:"city"`
+	Street     string `json:"street"`
+	House      int    `json:"house"`
+}
+
+type Customer struct {
+	gorm.Model
+	ID         uint      `gorm:"primaryKey" json:"id"`
+	Name       string    `json:"name"`
+	Surname    string    `json:"surname"`
+	Patronymic string    `json:"patronymic"`
+	Telephone  string    `json:"telephone"`
+	CardNumber string    `json:"card_number"`
+	Mail       string    `json:"mail"`
+	Password   string    `json:"password"`
+	Addresses  []Address `gorm:"foreignKey:CustomerID"`
+}
+
 type Product struct {
 	Id                string
 	ManufacturerId    int
@@ -104,6 +127,69 @@ type Product_Order struct {
 	Id        string
 	ProductId int
 	OrderId   int
+}
+
+type Category struct {
+	gorm.Model
+	ID   uint   `gorm:"primaryKey" json:"id"`
+	Name string `json:"name"`
+}
+
+type Manufacturer struct {
+	gorm.Model
+	ID      uint   `gorm:"primaryKey" json:"id"`
+	Name    string `json:"name"`
+	Country string `json:"country"`
+}
+
+type Order struct {
+	gorm.Model
+	ID         uint       `gorm:"primaryKey" json:"id"`
+	Date       time.Time  `json:"order_date"`
+	Time       time.Time  `json:"order_time"`
+	CustomerID uint       `json:"customer_id"`
+	Deliveries []Delivery `gorm:"foreignKey:OrderID"`
+	Products   []Product  `gorm:"many2many:product_orders;joinForeignKey:ProductID;referenceForeignKey:OrderID"`
+}
+
+type Review struct {
+	gorm.Model
+	ID         uint      `gorm:"primaryKey" json:"id"`
+	CustomerID uint      `json:"customer_id"`
+	ProductID  uint      `json:"product_id"`
+	Date       time.Time `json:"date_review"`
+	Text       string    `json:"review_text"`
+	Rating     int       `json:"rating"`
+}
+
+type Favorite struct {
+	gorm.Model
+	ID         uint `gorm:"primaryKey" json:"id"`
+	ProductID  uint `json:"product_id"`
+	CustomerID uint `json:"customer_id"`
+}
+
+type Provider struct {
+	gorm.Model
+	ManufacturerID uint `json:"manufacturer_id"`
+	ProductID      uint `json:"product_id"`
+}
+
+type Basket struct {
+	gorm.Model
+	ID         uint      `gorm:"primaryKey" json:"id"`
+	CustomerID uint      `json:"customer_id"`
+	Products   []Product `gorm:"many2many:basket_products;joinForeignKey:BasketID;referenceForeignKey:ProductID"`
+}
+
+type Delivery struct {
+	gorm.Model
+	ID           uint      `gorm:"primaryKey" json:"id"`
+	OrderID      uint      `json:"order_id"`
+	AddressID    uint      `json:"address_id"`
+	Status       string    `json:"status"`
+	SendDate     time.Time `json:"send_date"`
+	ExpectedDate time.Time `json:"expected_receive_date"`
 }
 
 /*
@@ -142,8 +228,10 @@ func initDB() {
 	}
 
 	// Миграция схемы
-	db.AutoMigrate(&Product{})
-	db.AutoMigrate(&Product_Order{})
+	db.AutoMigrate(&Address{}, &Customer{}, &Product{}, &Order{}, &Review{}, &Favorite{}, &Category{}, &Manufacturer{}, &Provider{}, &Basket{}, &Delivery{})
+	if err != nil {
+		log.Fatalf("Не удалось выполнить миграцию базы данных: %v", err)
+	}
 }
 
 var router = gin.Default()
@@ -398,13 +486,17 @@ func getProducts(c *gin.Context) {
 		"page":  pageInt,
 		"limit": limitInt,
 	})
+	sort := c.Query("sort")
+	if sort != "" {
+		query = query.Order(sort)
+	}
 }
 
 func getProductByID(c *gin.Context) {
 	id := c.Param("id")
 	var product Product
 	if err := db.First(&product, id).Error; err != nil {
-		handleError(c, http.StatusNotFound, "Book not found")
+		handleError(c, http.StatusNotFound, "Product not found")
 		return
 	}
 	c.JSON(http.StatusOK, product)
@@ -413,7 +505,7 @@ func getProductByID(c *gin.Context) {
 func createProduct(c *gin.Context) {
 	var newProduct Product
 	if err := c.BindJSON(&newProduct); err != nil {
-		handleError(c, http.StatusNotFound, "Book not found")
+		handleError(c, http.StatusNotFound, "Product not found")
 		return
 	}
 	db.Create(&newProduct)
@@ -424,11 +516,11 @@ func updateProduct(c *gin.Context) {
 	id := c.Param("id")
 	var updatedProduct Product
 	if err := c.BindJSON(&updatedProduct); err != nil {
-		handleError(c, http.StatusNotFound, "Book not found")
+		handleError(c, http.StatusNotFound, "Product not found")
 		return
 	}
 	if err := db.Model(&Product{}).Where("id = ?", id).Updates(updatedProduct).Error; err != nil {
-		handleError(c, http.StatusNotFound, "Book not found")
+		handleError(c, http.StatusNotFound, "Product not found")
 		return
 	}
 	c.JSON(http.StatusOK, updatedProduct)
@@ -437,10 +529,10 @@ func updateProduct(c *gin.Context) {
 func deleteProduct(c *gin.Context) {
 	id := c.Param("id")
 	if err := db.Delete(&Product{}, id).Error; err != nil {
-		handleError(c, http.StatusNotFound, "Book not found")
+		handleError(c, http.StatusNotFound, "Product not found")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "book deleted"})
+	c.JSON(http.StatusOK, gin.H{"message": "Product deleted"})
 }
 
 func getProductsWithTimeout(c *gin.Context) {
