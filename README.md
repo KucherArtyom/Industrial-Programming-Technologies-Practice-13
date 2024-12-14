@@ -1,6 +1,6 @@
 # Industrial-Programming-Technologies-Practice-13 (ЭФМО-02-24 Кучер Артем Сергеевич)
 ## Асинхронная обработка и задачи в фоновом режиме (Интернет-магазина электронники)
-tasks.go:
+### tasks.go:
 ```
 package tasks
 
@@ -69,7 +69,7 @@ func generateID() string {
 	return time.Now().Format("20060102150405")
 }
 ```
-main.go:
+### main.go:
 ```
 package main
 
@@ -90,25 +90,25 @@ import (
 
 type Address struct {
 	gorm.Model
-	ID         uint   `gorm:"primaryKey" json:"id"`
-	CustomerID uint   `json:"customer_id"`
-	Country    string `json:"country"`
-	City       string `json:"city"`
-	Street     string `json:"street"`
-	House      int    `json:"house"`
+	ID         uint
+	CustomerID uint
+	Country    string
+	City       string
+	Street     string
+	House      int
 }
 
 type Customer struct {
 	gorm.Model
-	ID         uint      `gorm:"primaryKey" json:"id"`
-	Name       string    `json:"name"`
-	Surname    string    `json:"surname"`
-	Patronymic string    `json:"patronymic"`
-	Telephone  string    `json:"telephone"`
-	CardNumber string    `json:"card_number"`
-	Mail       string    `json:"mail"`
-	Password   string    `json:"password"`
-	Addresses  []Address `gorm:"foreignKey:CustomerID"`
+	ID         uint
+	Name       string
+	Surname    string
+	Patronymic string
+	Telephone  string
+	CardNumber string
+	Mail       string
+	Password   string
+	Addresses  []Address
 }
 
 type Product struct {
@@ -131,65 +131,65 @@ type Product_Order struct {
 
 type Category struct {
 	gorm.Model
-	ID   uint   `gorm:"primaryKey" json:"id"`
-	Name string `json:"name"`
+	ID   uint
+	Name string
 }
 
 type Manufacturer struct {
 	gorm.Model
-	ID      uint   `gorm:"primaryKey" json:"id"`
-	Name    string `json:"name"`
-	Country string `json:"country"`
+	ID      uint
+	Name    string
+	Country string
 }
 
 type Order struct {
 	gorm.Model
-	ID         uint       `gorm:"primaryKey" json:"id"`
-	Date       time.Time  `json:"order_date"`
-	Time       time.Time  `json:"order_time"`
-	CustomerID uint       `json:"customer_id"`
-	Deliveries []Delivery `gorm:"foreignKey:OrderID"`
-	Products   []Product  `gorm:"many2many:product_orders;joinForeignKey:ProductID;referenceForeignKey:OrderID"`
+	ID         uint
+	Date       time.Time
+	Time       time.Time
+	CustomerID uint
+	Deliveries []Delivery
+	Products   []Product
 }
 
 type Review struct {
 	gorm.Model
-	ID         uint      `gorm:"primaryKey" json:"id"`
-	CustomerID uint      `json:"customer_id"`
-	ProductID  uint      `json:"product_id"`
-	Date       time.Time `json:"date_review"`
-	Text       string    `json:"review_text"`
-	Rating     int       `json:"rating"`
+	ID         uint
+	CustomerID uint
+	ProductID  uint
+	Date       time.Time
+	Text       string
+	Rating     int
 }
 
 type Favorite struct {
 	gorm.Model
-	ID         uint `gorm:"primaryKey" json:"id"`
-	ProductID  uint `json:"product_id"`
-	CustomerID uint `json:"customer_id"`
+	ID         uint
+	ProductID  uint
+	CustomerID uint
 }
 
 type Provider struct {
 	gorm.Model
-	ManufacturerID uint `json:"manufacturer_id"`
-	ProductID      uint `json:"product_id"`
+	ManufacturerID uint
+	ProductID      uint
 }
 
 type Basket struct {
 	gorm.Model
-	ID         uint      `gorm:"primaryKey" json:"id"`
-	CustomerID uint      `json:"customer_id"`
-	Products   []Product `gorm:"many2many:basket_products;joinForeignKey:BasketID;referenceForeignKey:ProductID"`
+	ID         uint
+	CustomerID uint
+	Products   []Product
 }
 
 type Delivery struct {
 	gorm.Model
-	ID           uint      `gorm:"primaryKey" json:"id"`
-	OrderID      uint      `json:"order_id"`
-	AddressID    uint      `json:"address_id"`
-	Status       string    `json:"status"`
-	SendDate     time.Time `json:"send_date"`
-	ExpectedDate time.Time `json:"expected_receive_date"`
+	ID           uint
+	OrderID      uint
+	AddressID    uint
+	Status       string
+	SendDate     time.Time
+	ExpectedDate time.Time
 }
 
 /*
