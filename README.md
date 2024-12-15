@@ -239,19 +239,19 @@ var router = gin.Default()
 var basket = []BasketItem{}
 
 type BasketItem struct {
-	ProductId string `json:"productId"`
+	ProductId string 
 	Quantity  int
 }
 
 var jwtKey = []byte("my_secret_key")
 
 type Credentials struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string 
+	Password string 
 }
 
 type Claims struct {
-	Username string `json:"username"`
+	Username string 
 	jwt.StandardClaims
 }
 
